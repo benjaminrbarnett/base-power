@@ -84,6 +84,7 @@
   .card.u-high .rail{background:var(--urg-high)}
   .card.u-medium .rail{background:var(--urg-medium)}
   .card.u-low .rail{background:var(--urg-low)}
+  .card.done .rail{background:var(--st-delivered)}
   .card-body{flex:1;min-width:0;padding:15px 17px}
   .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .pn{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.01em}
@@ -370,6 +371,11 @@ function coverage(p){
   return {sourced:s,pct,need:Math.max(0,p.required-s)};
 }
 function stateOf(p){const{pct}=coverage(p);return pct>=100?"full":pct<=0?"gap":"partial";}
+/* completed = fully covered AND every offer on the line is Delivered */
+function isComplete(p){
+  const os=offersFor(p.pn);
+  return coverage(p).pct>=100 && os.length>0 && os.every(o=>o.status==="Delivered");
+}
 
 function segmentsFor(p){
   const rank={Delivered:0,Shipping:1,Ordered:2,Quoted:3};
@@ -439,7 +445,7 @@ function renderBoard(){
     const os=offersFor(p.pn);
     const urg=urgOf(p);
     const segs=segmentsFor(p).map(s=>`<div class="seg st-${s.status.toLowerCase()}" style="width:${s.pct}%" data-offer="${s.id}"></div>`).join("");
-    return `<div class="card u-${urg.toLowerCase()}"><div class="rail"></div><div class="card-body">
+    return `<div class="card u-${urg.toLowerCase()}${isComplete(p)?' done':''}"><div class="rail"></div><div class="card-body">
       <div class="card-top">
         <div><span class="pn">${p.pn}</span>
           <span class="tags"><span class="tag urg urg-${urg.toLowerCase()}" data-urg="${p.pn}" title="Click to change urgency">${urg}</span>${p.auto?`<span class="tag auto">Auto Q1</span>`:``}</span>
