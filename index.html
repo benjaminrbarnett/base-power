@@ -87,6 +87,10 @@
   .card.done .rail{background:var(--st-delivered)}
   .card-body{flex:1;min-width:0;padding:15px 17px}
   .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .cov-right{display:inline-flex;align-items:center;gap:10px}
+  .edit-part{font-size:11px;font-weight:600;color:var(--muted);background:var(--surface-2);
+    border:1px solid var(--line);border-radius:4px;padding:3px 9px}
+  .edit-part:hover{color:var(--text);border-color:var(--accent)}
   .pn{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.01em}
   .desc{color:var(--muted);font-size:12.5px;margin-left:2px}
   .tags{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
@@ -294,6 +298,20 @@
   </div>
 </div>
 
+<!-- edit part -->
+<div class="scrim" id="scrim4">
+  <div class="modal">
+    <h2>Edit requirement</h2>
+    <div class="mh-sub" id="editSub"></div>
+    <div class="field"><label for="f4-req">Required quantity</label><input type="number" id="f4-req" min="0" placeholder="e.g. 300000"></div>
+    <div class="field"><label for="f4-desc">Description</label><input type="text" id="f4-desc" placeholder="e.g. Isolated gate driver"></div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelEditBtn">Cancel</button>
+      <button class="btn primary" id="saveEditBtn">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* Supabase connection is inlined here so this file works on its own.
@@ -450,7 +468,7 @@ function renderBoard(){
         <div><span class="pn">${p.pn}</span>
           <span class="tags"><span class="tag urg urg-${urg.toLowerCase()}" data-urg="${p.pn}" title="Click to change urgency">${urg}</span>${p.auto?`<span class="tag auto">Auto Q1</span>`:``}</span>
           <span class="desc">${p.descr||""}</span></div>
-        <span class="cov ${st}">${covLabel}</span>
+        <span class="cov-right"><button class="edit-part" data-edit="${p.pn}" title="Edit requirement">Edit</button><span class="cov ${st}">${covLabel}</span></span>
       </div>
       <div class="cov-row">
         <div class="meter seged">${segs}
@@ -518,7 +536,9 @@ document.getElementById("board").addEventListener("click",async e=>{
   const urg=e.target.closest("[data-urg]");
   const paid=e.target.closest("[data-paid]");
   const files=e.target.closest("[data-files]");
+  const edit=e.target.closest("[data-edit]");
   if(add){openModal(add.dataset.add);}
+  else if(edit){openEdit(edit.dataset.edit);}
   else if(files){openFiles(files.dataset.files);}
   else if(paid){
     const o=offerById(paid.dataset.paid); if(!o)return;
@@ -601,6 +621,32 @@ document.getElementById("savePartBtn").addEventListener("click",async()=>{
   closePartModal(); await refresh();
 });
 
+/* ---- edit part (requirement) ---- */
+const scrim4=document.getElementById("scrim4");
+let editingPart=null;
+function openEdit(pn){
+  const p=parts.find(x=>x.pn===pn); if(!p)return;
+  editingPart=pn;
+  document.getElementById("editSub").textContent=p.pn;
+  document.getElementById("f4-req").value=p.required||0;
+  document.getElementById("f4-desc").value=p.descr||"";
+  scrim4.classList.add("on");
+  const el=document.getElementById("f4-req"); el.focus(); el.select();
+}
+const closeEdit=()=>{scrim4.classList.remove("on");editingPart=null;};
+document.getElementById("cancelEditBtn").addEventListener("click",closeEdit);
+scrim4.addEventListener("click",e=>{if(e.target===scrim4)closeEdit();});
+document.getElementById("saveEditBtn").addEventListener("click",async()=>{
+  if(!editingPart)return;
+  const required=+document.getElementById("f4-req").value;
+  if(isNaN(required)||required<0){alert("Enter a valid quantity.");return;}
+  const {error}=await db.from("parts").update({
+    required, descr:document.getElementById("f4-desc").value.trim()
+  }).eq("pn",editingPart);
+  if(error){alert("Could not save: "+error.message);return;}
+  closeEdit(); await refresh();
+});
+
 /* ---- order files (Supabase Storage) ---- */
 const scrim3=document.getElementById("scrim3");
 async function openFiles(id){
@@ -645,7 +691,7 @@ document.getElementById("fileList").addEventListener("click",async e=>{
 document.getElementById("closeFilesBtn").addEventListener("click",closeFiles);
 scrim3.addEventListener("click",e=>{if(e.target===scrim3)closeFiles();});
 
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();closeFiles();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();closeFiles();closeEdit();}});
 
 /* ---- export ---- */
 document.getElementById("exportBtn").addEventListener("click",()=>{
