@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base Power · Supply Program</title>
+<style>
+  :root{
+    --ink:#0d1117;--surface:#151b23;--surface-2:#1b232d;--raised:#212b36;
+    --line:#2a3440;--line-soft:#212a34;--text:#e7edf3;--muted:#8c9aa8;--faint:#5c6672;
+    --accent:#3b9dff;--full:#3fb950;--partial:#d6a029;--gap:#f0553f;
+    --ordered:#4a8fe0;--shipping:#c98a2b;--delivered:#3fb950;--quoted:#6a7684;
+    --radius:6px;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);
+    font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+  header{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#131a22,#0d1117)}
+  .head-inner{max-width:1080px;margin:0 auto;padding:22px 20px 20px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .title h1{margin:0;font-size:21px;font-weight:650;letter-spacing:-.01em}
+  .title .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .title .sub b{color:var(--text);font-weight:550}
+  .live{display:inline-flex;align-items:center;gap:5px;margin-left:8px;color:var(--faint)}
+  .live .pip{width:6px;height:6px;border-radius:50%;background:var(--faint)}
+  .live.on{color:var(--full)}.live.on .pip{background:var(--full);box-shadow:0 0 6px var(--full)}
+  .head-actions{display:flex;gap:8px}
+  button{font-family:var(--sans);cursor:pointer}
+  .btn{background:var(--raised);color:var(--text);border:1px solid var(--line);
+    border-radius:var(--radius);padding:8px 13px;font-size:13px;font-weight:550;
+    transition:border-color .12s,background .12s}
+  .btn:hover{border-color:#3d4b58;background:#26313d}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#04121f}
+  .btn.primary:hover{background:#57abff;border-color:#57abff}
+  .btn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .program{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px;margin:24px 0 8px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .stat .k{font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+  .stat .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin-top:3px}
+  .stat .v small{font-size:14px;color:var(--muted);font-weight:500}
+  .stat.hero{grid-column:1;display:flex;flex-direction:column;justify-content:space-between}
+  .hero .meter{margin-top:12px}
+  .stat.gap-tile .v{color:var(--gap)}
+  .meter{position:relative;height:14px;border-radius:3px;background:#0c1218;
+    border:1px solid var(--line-soft);overflow:hidden}
+  .meter.lg{height:18px}
+  .meter .fill{position:absolute;inset:0 auto 0 0;border-radius:2px 0 0 2px;
+    background:linear-gradient(90deg,#2f8a44,#49c760);transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .meter .fill.partial{background:linear-gradient(90deg,#a9791d,#e0b23a)}
+  .meter .fill.gap{background:linear-gradient(90deg,#a5372a,#f0553f)}
+  .meter .fill.empty{background:transparent}
+  .meter .fill::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;
+    background:rgba(255,255,255,.55);box-shadow:0 0 6px rgba(255,255,255,.4)}
+  .meter .ticks{position:absolute;inset:0;pointer-events:none}
+  .meter .ticks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.06)}
+  .controls{display:flex;align-items:center;gap:10px;margin:22px 0 14px;flex-wrap:wrap}
+  .segmented{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px}
+  .segmented button{background:none;border:none;color:var(--muted);font-size:12.5px;padding:6px 11px;border-radius:4px;font-weight:550}
+  .segmented button.on{background:var(--raised);color:var(--text)}
+  .segmented button .c{color:var(--faint);margin-left:5px;font-variant-numeric:tabular-nums}
+  .spacer{flex:1}
+  select,input[type=text],input[type=number],input[type=date]{
+    background:var(--surface);border:1px solid var(--line);color:var(--text);
+    border-radius:var(--radius);padding:7px 10px;font-size:13px;font-family:var(--sans)}
+  input::placeholder{color:var(--faint)}
+  .search{width:190px}
+  .board{display:flex;flex-direction:column;gap:10px}
+  .card{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .rail{width:4px;flex:0 0 4px;background:var(--quoted)}
+  .card.s-full .rail{background:var(--full)}
+  .card.s-partial .rail{background:var(--partial)}
+  .card.s-gap .rail{background:var(--gap)}
+  .card-body{flex:1;min-width:0;padding:15px 17px}
+  .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .pn{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .desc{color:var(--muted);font-size:12.5px;margin-left:2px}
+  .tags{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+  .tag{font-size:10.5px;font-weight:650;letter-spacing:.03em;padding:2px 6px;border-radius:3px;border:1px solid transparent;text-transform:uppercase}
+  .tag.auto{color:#ffcf8a;background:rgba(214,160,41,.12);border-color:rgba(214,160,41,.3)}
+  .cov{font-family:var(--mono);font-size:13px;font-weight:600;white-space:nowrap}
+  .cov.full{color:var(--full)}.cov.partial{color:var(--partial)}.cov.gap{color:var(--gap)}
+  .cov-row{display:flex;align-items:center;gap:14px;margin:11px 0 3px}
+  .cov-row .meter{flex:1}
+  .cov-nums{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cov-nums b{color:var(--text)}
+  .need{color:var(--gap)}
+  .offers{margin-top:12px;border-top:1px solid var(--line-soft);padding-top:11px}
+  .offers-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .offers-h .lbl{font-size:11.5px;color:var(--muted)}
+  .add-offer{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:4px;padding:4px 10px;font-size:12px;font-weight:550}
+  .add-offer:hover{border-color:var(--accent);color:var(--accent)}
+  .offer{display:grid;grid-template-columns:auto auto auto 1fr auto;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line-soft)}
+  .offer:last-child{border-bottom:none}
+  .offer .oq{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+  .offer .op{font-family:var(--mono);color:var(--text)}
+  .offer .om{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:9px;flex-wrap:wrap}
+  .offer .om .dot{color:var(--faint)}
+  .new-badge{font-size:9.5px;font-weight:700;letter-spacing:.04em;color:#7fd4ff;background:rgba(59,157,255,.14);border:1px solid rgba(59,157,255,.3);padding:1px 5px;border-radius:3px;margin-left:2px}
+  .stepper{display:inline-flex;align-items:center}
+  .step{font-size:11px;font-weight:600;color:var(--faint);background:var(--surface-2);border:1px solid var(--line);border-right:none;padding:4px 10px;cursor:pointer;transition:color .12s,background .12s}
+  .step:first-child{border-radius:4px 0 0 4px}
+  .step:last-child{border-radius:0 4px 4px 0;border-right:1px solid var(--line)}
+  .step:hover{color:var(--text)}
+  .step.done{color:#cdd7e0}
+  .step.cur{color:#04121f}
+  .step.cur.st-quoted{background:var(--quoted);border-color:var(--quoted)}
+  .step.cur.st-ordered{background:var(--ordered);border-color:var(--ordered)}
+  .step.cur.st-shipping{background:var(--shipping);border-color:var(--shipping)}
+  .step.cur.st-delivered{background:var(--delivered);border-color:var(--delivered)}
+  .eta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:10px;white-space:nowrap}
+  .del-offer{background:none;border:none;color:var(--faint);font-size:15px;line-height:1;cursor:pointer;padding:2px 4px}
+  .del-offer:hover{color:var(--gap)}
+  .empty-offers{color:var(--faint);font-size:12.5px;font-style:italic;padding:4px 0}
+  .scrim{position:fixed;inset:0;background:rgba(4,8,12,.62);backdrop-filter:blur(2px);display:none;align-items:flex-start;justify-content:center;padding:60px 20px;z-index:50}
+  .scrim.on{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:100%;max-width:440px;padding:22px}
+  .modal h2{margin:0 0 4px;font-size:17px}
+  .modal .mh-sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .field input,.field select{width:100%}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  .footnote{color:var(--faint);font-size:11.5px;margin-top:26px;text-align:center}
+  .setup{background:var(--surface);border:1px solid var(--partial);border-radius:var(--radius);padding:22px 24px;margin-top:8px}
+  .setup h2{margin:0 0 8px;font-size:16px;color:var(--partial)}
+  .setup p{color:var(--muted);margin:6px 0}
+  .setup code{font-family:var(--mono);color:var(--text);background:#0c1218;padding:1px 5px;border-radius:3px}
+  @media(max-width:720px){
+    .program{grid-template-columns:1fr 1fr}
+    .stat.hero{grid-column:1/-1}
+    .offer{grid-template-columns:1fr;gap:6px}
+    .search{width:100%}.spacer{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="title">
+      <h1>Base Power — Supply Program</h1>
+      <div class="sub">Sourced by <b>N.F. Smith &amp; Associates</b>
+        <span class="live" id="live"><span class="pip"></span><span id="liveTxt">connecting…</span></span></div>
+    </div>
+    <div class="head-actions">
+      <button class="btn" id="exportBtn">Export</button>
+      <button class="btn primary" id="addBtn">Add offer</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="program" id="program"></section>
+
+  <div class="controls" id="controls">
+    <div class="segmented" id="filters">
+      <button data-f="all" class="on">All <span class="c" id="c-all"></span></button>
+      <button data-f="gap">Gaps <span class="c" id="c-gap"></span></button>
+      <button data-f="partial">Partial <span class="c" id="c-partial"></span></button>
+      <button data-f="full">Covered <span class="c" id="c-full"></span></button>
+    </div>
+    <div class="spacer"></div>
+    <select id="sort">
+      <option value="need">Sort: most to find</option>
+      <option value="cov">Sort: lowest coverage</option>
+      <option value="qty">Sort: largest requirement</option>
+      <option value="newest">Sort: newest offers</option>
+      <option value="az">Sort: part number</option>
+    </select>
+    <input type="text" class="search" id="search" placeholder="Filter by part…">
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <p class="footnote">Live from Supabase. Edits made here update the shared database for everyone viewing.</p>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="modal">
+    <h2>Add offer</h2>
+    <div class="mh-sub">Stamped with today's entry date and tracked from Quoted onward.</div>
+    <div class="field"><label for="f-part">Part</label><select id="f-part"></select></div>
+    <div class="grid2">
+      <div class="field"><label for="f-qty">Quantity</label><input type="number" id="f-qty" min="1" placeholder="e.g. 25000"></div>
+      <div class="field"><label for="f-price">Unit price (sell)</label><input type="number" id="f-price" step="0.0001" placeholder="e.g. 12.50"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="f-dc">Date code</label><input type="text" id="f-dc" placeholder="e.g. 24+"></div>
+      <div class="field"><label for="f-coo">Country of origin</label><input type="text" id="f-coo" placeholder="e.g. China"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="f-lead">Lead time</label><input type="text" id="f-lead" placeholder="e.g. In stock / 4 wks"></div>
+      <div class="field"><label for="f-status">Status</label>
+        <select id="f-status"><option>Quoted</option><option>Ordered</option><option>Shipping</option><option>Delivered</option></select>
+      </div>
+    </div>
+    <div class="field"><label for="f-eta">Est. delivery date <span style="color:var(--faint)">(optional)</span></label><input type="date" id="f-eta"></div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="saveBtn">Add offer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Supabase connection is inlined here so this file works on its own,
+   with no separate config.js to keep beside it. The publishable key is
+   public-safe by design; Row Level Security protects the data. */
+const CONFIG = {
+  url:  "https://kastwhglsdhrcugreynx.supabase.co",
+  anon: "sb_publishable_kjiLhHo4sdp2yj_FU4cLCw_IO4J7Cdv"
+};
+</script>
+<script>
+const STEPS=["Quoted","Ordered","Shipping","Delivered"];
+const fmt=n=>Number(n||0).toLocaleString("en-US");
+const today=()=>new Date().toISOString().slice(0,10);
+const daysAgo=d=>(Date.now()-new Date(d).getTime())/86400000;
+
+let db=null, parts=[], offers=[];
+let activeFilter="all", activeSort="need", searchTerm="";
+
+/* ---- config guard: show a helpful setup card if keys are missing ---- */
+function configured(){
+  return window.CONFIG && !CONFIG.url.includes("YOUR_") && !CONFIG.anon.includes("YOUR_");
+}
+if(!configured()){
+  document.getElementById("controls").style.display="none";
+  document.getElementById("board").innerHTML=`
+    <div class="setup">
+      <h2>Add your Supabase keys to go live</h2>
+      <p>1. Create a project at supabase.com, then run <code>supabase/schema.sql</code> in the SQL editor.</p>
+      <p>2. In <code>config.js</code>, paste your project <code>url</code> and <code>anon</code> key
+         (Project Settings → API).</p>
+      <p>3. Redeploy. This dashboard will then read and write the live database.</p>
+    </div>`;
+  document.getElementById("liveTxt").textContent="not configured";
+} else {
+  db = supabase.createClient(CONFIG.url, CONFIG.anon);
+  init();
+}
+
+async function init(){
+  await fetchAll();
+  renderAll();
+  db.channel("supply")
+    .on("postgres_changes",{event:"*",schema:"public",table:"offers"}, refresh)
+    .on("postgres_changes",{event:"*",schema:"public",table:"parts"}, refresh)
+    .subscribe(status=>{
+      const live=document.getElementById("live");
+      if(status==="SUBSCRIBED"){live.classList.add("on");document.getElementById("liveTxt").textContent="live";}
+    });
+}
+async function refresh(){ await fetchAll(); renderAll(); }
+
+async function fetchAll(){
+  const [pr,of] = await Promise.all([
+    db.from("parts").select("*").order("sort_order",{ascending:true}),
+    db.from("offers").select("*").order("created_at",{ascending:true})
+  ]);
+  if(pr.error||of.error){
+    document.getElementById("board").innerHTML=
+      `<div class="setup"><h2>Couldn't reach the database</h2>
+       <p>${(pr.error||of.error).message}. Check your keys in <code>config.js</code> and that the schema has been run.</p></div>`;
+    return;
+  }
+  parts=pr.data||[]; offers=of.data||[];
+}
+
+/* ---- derived ---- */
+const offersFor=pn=>offers.filter(o=>o.pn===pn);
+const sourced=pn=>offersFor(pn).reduce((s,o)=>s+(+o.qty||0),0);
+function coverage(p){
+  const s=sourced(p.pn);
+  const pct=p.required?Math.min(100,(s/p.required)*100):0;
+  return {sourced:s,pct,need:Math.max(0,p.required-s)};
+}
+function stateOf(p){const{pct}=coverage(p);return pct>=100?"full":pct<=0?"gap":"partial";}
+
+/* ---- program summary ---- */
+function renderProgram(){
+  let reqTot=0,srcTot=0,full=0,gap=0,value=0;
+  parts.forEach(p=>{const c=coverage(p);reqTot+=p.required;srcTot+=Math.min(c.sourced,p.required);
+    if(c.pct>=100)full++;if(c.pct<=0)gap++;});
+  offers.forEach(o=>value+=(+o.qty||0)*(+o.price||0));
+  const pct=reqTot?(srcTot/reqTot)*100:0;
+  const cls=pct>=80?"":pct<40?"gap":"partial";
+  document.getElementById("program").innerHTML=`
+    <div class="stat hero">
+      <div><div class="k">Program coverage — units sourced across the BOM</div>
+        <div class="v">${pct.toFixed(0)}<small>% of ${fmt(reqTot)} units</small></div></div>
+      <div class="meter lg"><div class="fill ${cls}" style="width:${pct}%"></div>
+        <div class="ticks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
+    </div>
+    <div class="stat"><div class="k">Lines fully covered</div><div class="v">${full}<small> / ${parts.length}</small></div></div>
+    <div class="stat gap-tile"><div class="k">Lines with no coverage</div><div class="v">${gap}</div></div>
+    <div class="stat"><div class="k">Quoted value</div><div class="v">$${(value/1e6).toFixed(2)}<small>M</small></div></div>`;
+}
+
+function renderCounts(){
+  let gap=0,partial=0,full=0;
+  parts.forEach(p=>{const s=stateOf(p);s==="gap"?gap++:s==="partial"?partial++:full++;});
+  document.getElementById("c-all").textContent=parts.length;
+  document.getElementById("c-gap").textContent=gap;
+  document.getElementById("c-partial").textContent=partial;
+  document.getElementById("c-full").textContent=full;
+}
+
+function visibleParts(){
+  let ps=parts.map(p=>({p,c:coverage(p),st:stateOf(p)}));
+  if(activeFilter!=="all")ps=ps.filter(x=>x.st===activeFilter);
+  if(searchTerm)ps=ps.filter(x=>x.p.pn.toLowerCase().includes(searchTerm)||(x.p.descr||"").toLowerCase().includes(searchTerm));
+  const newest=pn=>Math.max(0,...offersFor(pn).map(o=>new Date(o.entered||0).getTime()));
+  ps.sort((a,b)=>{switch(activeSort){
+    case"need":return b.c.need-a.c.need;
+    case"cov":return a.c.pct-b.c.pct;
+    case"qty":return b.p.required-a.p.required;
+    case"newest":return newest(b.p.pn)-newest(a.p.pn);
+    case"az":return a.p.pn.localeCompare(b.p.pn);}});
+  return ps;
+}
+
+function renderBoard(){
+  const board=document.getElementById("board");
+  const ps=visibleParts();
+  if(!ps.length){board.innerHTML=`<div class="empty-offers" style="padding:24px">No parts match this view.</div>`;return;}
+  board.innerHTML=ps.map(({p,c,st})=>{
+    const covLabel=st==="full"?"Covered":`${c.pct.toFixed(0)}%`;
+    const os=offersFor(p.pn);
+    return `<div class="card s-${st}"><div class="rail"></div><div class="card-body">
+      <div class="card-top">
+        <div><span class="pn">${p.pn}</span>
+          ${p.auto?`<span class="tags"><span class="tag auto">Auto Q1</span></span>`:``}
+          <span class="desc">${p.descr||""}</span></div>
+        <span class="cov ${st}">${covLabel}</span>
+      </div>
+      <div class="cov-row">
+        <div class="meter"><div class="fill ${st==='full'?'':st==='gap'?'gap empty':'partial'}" style="width:${c.pct}%"></div>
+          <div class="ticks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
+        <div class="cov-nums"><b>${fmt(c.sourced)}</b> / ${fmt(p.required)}
+          ${c.need>0?`· <span class="need">need ${fmt(c.need)}</span>`:`· <span style="color:var(--full)">complete</span>`}</div>
+      </div>
+      <div class="offers">
+        <div class="offers-h"><span class="lbl">${os.length} offer${os.length===1?"":"s"}</span>
+          <button class="add-offer" data-add="${p.pn}">+ offer</button></div>
+        ${os.length?os.map(offerRow).join(""):`<div class="empty-offers">No offers yet — this line is open for sourcing.</div>`}
+      </div></div></div>`;
+  }).join("");
+}
+
+function offerRow(o){
+  const isNew=o.entered&&daysAgo(o.entered)<=7;
+  const stepper=STEPS.map(s=>{
+    const cur=s===o.status, done=STEPS.indexOf(s)<STEPS.indexOf(o.status);
+    return `<button class="step ${done?'done':''} ${cur?'cur st-'+s.toLowerCase():''}" data-step="${o.id}" data-to="${s}" title="Mark ${s}">${s}</button>`;
+  }).join("");
+  const meta=[o.dc?`DC ${o.dc}`:"",o.coo||"",o.lead||"",o.entered?`entered ${o.entered.slice(5)}`:""]
+    .filter(Boolean).map((m,i)=>`${i?'<span class="dot">·</span>':''}${m}`).join(" ");
+  return `<div class="offer">
+    <span class="oq">${fmt(+o.qty||0)}</span>
+    <span class="op">$${(+o.price||0).toFixed(o.price<1?4:2)}</span>
+    <span class="om">${meta}${isNew?`<span class="new-badge">NEW</span>`:""}</span>
+    <span class="stepper-wrap"><span class="stepper">${stepper}</span>
+      ${o.eta&&(o.status==="Ordered"||o.status==="Shipping")?`<span class="eta">ETA ${String(o.eta).slice(5)}</span>`:""}</span>
+    <button class="del-offer" data-del="${o.id}" title="Remove offer">×</button>
+  </div>`;
+}
+
+/* ---- writes ---- */
+document.getElementById("board").addEventListener("click",async e=>{
+  const add=e.target.closest("[data-add]");
+  const step=e.target.closest("[data-step]");
+  const del=e.target.closest("[data-del]");
+  if(add){openModal(add.dataset.add);}
+  else if(step){
+    await db.from("offers").update({status:step.dataset.to}).eq("id",step.dataset.step);
+    await refresh();
+  } else if(del){
+    if(confirm("Remove this offer?")){await db.from("offers").delete().eq("id",del.dataset.del);await refresh();}
+  }
+});
+
+document.getElementById("filters").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  activeFilter=b.dataset.f;[...e.currentTarget.children].forEach(x=>x.classList.toggle("on",x===b));renderBoard();
+});
+document.getElementById("sort").addEventListener("change",e=>{activeSort=e.target.value;renderBoard();});
+document.getElementById("search").addEventListener("input",e=>{searchTerm=e.target.value.toLowerCase().trim();renderBoard();});
+
+/* ---- modal ---- */
+const scrim=document.getElementById("scrim");
+function openModal(pn){
+  const sel=document.getElementById("f-part");
+  sel.innerHTML=parts.map(p=>`<option value="${p.pn}">${p.pn} — ${p.descr||""}</option>`).join("");
+  if(pn)sel.value=pn;
+  ["f-qty","f-price","f-dc","f-coo","f-lead","f-eta"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f-status").value="Quoted";
+  scrim.classList.add("on");document.getElementById("f-qty").focus();
+}
+const closeModal=()=>scrim.classList.remove("on");
+document.getElementById("addBtn").addEventListener("click",()=>{if(configured())openModal(null);});
+document.getElementById("cancelBtn").addEventListener("click",closeModal);
+scrim.addEventListener("click",e=>{if(e.target===scrim)closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+document.getElementById("saveBtn").addEventListener("click",async()=>{
+  const qty=+document.getElementById("f-qty").value;
+  if(!qty||qty<=0){alert("Enter a quantity.");return;}
+  const eta=document.getElementById("f-eta").value;
+  const row={
+    pn:document.getElementById("f-part").value,
+    qty, price:+document.getElementById("f-price").value||0,
+    dc:document.getElementById("f-dc").value.trim(),
+    coo:document.getElementById("f-coo").value.trim(),
+    lead:document.getElementById("f-lead").value.trim(),
+    status:document.getElementById("f-status").value,
+    entered:today(), eta:eta||null
+  };
+  const {error}=await db.from("offers").insert(row);
+  if(error){alert("Could not save: "+error.message);return;}
+  closeModal(); await refresh();
+});
+
+/* ---- export ---- */
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const blob=new Blob([JSON.stringify({parts,offers},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="data.json";a.click();URL.revokeObjectURL(a.href);
+});
+
+function renderAll(){renderProgram();renderCounts();renderBoard();}
+</script>
+</body>
+</html>
