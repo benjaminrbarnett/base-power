@@ -9,7 +9,11 @@
     --ink:#0d1117;--surface:#151b23;--surface-2:#1b232d;--raised:#212b36;
     --line:#2a3440;--line-soft:#212a34;--text:#e7edf3;--muted:#8c9aa8;--faint:#5c6672;
     --accent:#3b9dff;--full:#3fb950;--partial:#d6a029;--gap:#f0553f;
-    --ordered:#4a8fe0;--shipping:#c98a2b;--delivered:#3fb950;--quoted:#6a7684;
+    --quoted:#6a7684;
+    /* status colors used by the segmented bar + stepper */
+    --st-quoted:#e0b23a;--st-ordered:#8a7fe0;--st-shipping:#3b9dff;--st-delivered:#49c760;
+    /* urgency */
+    --urg-high:#f0553f;--urg-medium:#d6a029;--urg-low:#5a6675;
     --radius:6px;
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -55,8 +59,18 @@
   .meter .fill.empty{background:transparent}
   .meter .fill::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;
     background:rgba(255,255,255,.55);box-shadow:0 0 6px rgba(255,255,255,.4)}
+  /* segmented (per-part) bar coloured by offer status */
+  .meter.seged{display:flex}
+  .seg{height:100%;flex:0 0 auto;transition:width .4s ease}
+  .seg.st-quoted{background:linear-gradient(90deg,#c99a1e,var(--st-quoted))}
+  .seg.st-ordered{background:linear-gradient(90deg,#6f64c9,var(--st-ordered))}
+  .seg.st-shipping{background:linear-gradient(90deg,#2f7fd6,var(--st-shipping))}
+  .seg.st-delivered{background:linear-gradient(90deg,#2f8a44,var(--st-delivered))}
   .meter .ticks{position:absolute;inset:0;pointer-events:none}
   .meter .ticks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.06)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 0;font-size:11px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
   .controls{display:flex;align-items:center;gap:10px;margin:22px 0 14px;flex-wrap:wrap}
   .segmented{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px}
   .segmented button{background:none;border:none;color:var(--muted);font-size:12.5px;padding:6px 11px;border-radius:4px;font-weight:550}
@@ -67,13 +81,13 @@
     background:var(--surface);border:1px solid var(--line);color:var(--text);
     border-radius:var(--radius);padding:7px 10px;font-size:13px;font-family:var(--sans)}
   input::placeholder{color:var(--faint)}
-  .search{width:190px}
+  .search{width:170px}
   .board{display:flex;flex-direction:column;gap:10px}
   .card{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-  .rail{width:4px;flex:0 0 4px;background:var(--quoted)}
-  .card.s-full .rail{background:var(--full)}
-  .card.s-partial .rail{background:var(--partial)}
-  .card.s-gap .rail{background:var(--gap)}
+  .rail{width:4px;flex:0 0 4px;background:var(--urg-medium)}
+  .card.u-high .rail{background:var(--urg-high)}
+  .card.u-medium .rail{background:var(--urg-medium)}
+  .card.u-low .rail{background:var(--urg-low)}
   .card-body{flex:1;min-width:0;padding:15px 17px}
   .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .pn{font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:-.01em}
@@ -81,6 +95,11 @@
   .tags{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
   .tag{font-size:10.5px;font-weight:650;letter-spacing:.03em;padding:2px 6px;border-radius:3px;border:1px solid transparent;text-transform:uppercase}
   .tag.auto{color:#ffcf8a;background:rgba(214,160,41,.12);border-color:rgba(214,160,41,.3)}
+  .tag.urg{cursor:pointer;user-select:none}
+  .tag.urg-high{color:#ff9a8a;background:rgba(240,85,63,.14);border-color:rgba(240,85,63,.35)}
+  .tag.urg-medium{color:#ffcf8a;background:rgba(214,160,41,.12);border-color:rgba(214,160,41,.3)}
+  .tag.urg-low{color:#a7b6c4;background:rgba(120,140,160,.12);border-color:rgba(120,140,160,.28)}
+  .tag.urg:hover{filter:brightness(1.2)}
   .cov{font-family:var(--mono);font-size:13px;font-weight:600;white-space:nowrap}
   .cov.full{color:var(--full)}.cov.partial{color:var(--partial)}.cov.gap{color:var(--gap)}
   .cov-row{display:flex;align-items:center;gap:14px;margin:11px 0 3px}
@@ -107,10 +126,10 @@
   .step:hover{color:var(--text)}
   .step.done{color:#cdd7e0}
   .step.cur{color:#04121f}
-  .step.cur.st-quoted{background:var(--quoted);border-color:var(--quoted)}
-  .step.cur.st-ordered{background:var(--ordered);border-color:var(--ordered)}
-  .step.cur.st-shipping{background:var(--shipping);border-color:var(--shipping)}
-  .step.cur.st-delivered{background:var(--delivered);border-color:var(--delivered)}
+  .step.cur.st-quoted{background:var(--st-quoted);border-color:var(--st-quoted)}
+  .step.cur.st-ordered{background:var(--st-ordered);border-color:var(--st-ordered)}
+  .step.cur.st-shipping{background:var(--st-shipping);border-color:var(--st-shipping)}
+  .step.cur.st-delivered{background:var(--st-delivered);border-color:var(--st-delivered)}
   .eta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:10px;white-space:nowrap}
   .del-offer{background:none;border:none;color:var(--faint);font-size:15px;line-height:1;cursor:pointer;padding:2px 4px}
   .del-offer:hover{color:var(--gap)}
@@ -123,6 +142,8 @@
   .field{margin-bottom:13px}
   .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
   .field input,.field select{width:100%}
+  .checkrow{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}
+  .checkrow input{width:auto}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
   .footnote{color:var(--faint);font-size:11.5px;margin-top:26px;text-align:center}
@@ -150,6 +171,7 @@
     </div>
     <div class="head-actions">
       <button class="btn" id="exportBtn">Export</button>
+      <button class="btn" id="addPartBtn">Add part</button>
       <button class="btn primary" id="addBtn">Add offer</button>
     </div>
   </div>
@@ -167,6 +189,7 @@
     </div>
     <div class="spacer"></div>
     <select id="sort">
+      <option value="urgency">Sort: urgency</option>
       <option value="need">Sort: most to find</option>
       <option value="cov">Sort: lowest coverage</option>
       <option value="qty">Sort: largest requirement</option>
@@ -176,11 +199,19 @@
     <input type="text" class="search" id="search" placeholder="Filter by part…">
   </div>
 
+  <div class="legend" id="legend">
+    <span><i style="background:var(--st-quoted)"></i>Quoted</span>
+    <span><i style="background:var(--st-ordered)"></i>Ordered</span>
+    <span><i style="background:var(--st-shipping)"></i>Shipping</span>
+    <span><i style="background:var(--st-delivered)"></i>Delivered</span>
+  </div>
+
   <div class="board" id="board"></div>
 
-  <p class="footnote">Live from Supabase. Edits made here update the shared database for everyone viewing.</p>
+  <p class="footnote">Live from Supabase. Edits made here update the shared database for everyone viewing. Click a part's urgency badge to change it.</p>
 </div>
 
+<!-- add offer -->
 <div class="scrim" id="scrim">
   <div class="modal">
     <h2>Add offer</h2>
@@ -208,11 +239,31 @@
   </div>
 </div>
 
+<!-- add part -->
+<div class="scrim" id="scrim2">
+  <div class="modal">
+    <h2>Add part</h2>
+    <div class="mh-sub">Adds a new line to the BOM. You can add offers to it afterward.</div>
+    <div class="field"><label for="f2-pn">Part number</label><input type="text" id="f2-pn" placeholder="e.g. TPS62840DLCR"></div>
+    <div class="field"><label for="f2-desc">Description</label><input type="text" id="f2-desc" placeholder="e.g. Buck converter"></div>
+    <div class="grid2">
+      <div class="field"><label for="f2-req">Required qty</label><input type="number" id="f2-req" min="1" placeholder="e.g. 50000"></div>
+      <div class="field"><label for="f2-urg">Urgency</label>
+        <select id="f2-urg"><option>High</option><option selected>Medium</option><option>Low</option></select>
+      </div>
+    </div>
+    <div class="field"><label class="checkrow"><input type="checkbox" id="f2-auto"> Automotive Q1 grade</label></div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelPartBtn">Cancel</button>
+      <button class="btn primary" id="savePartBtn">Add part</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* Supabase connection is inlined here so this file works on its own,
-   with no separate config.js to keep beside it. The publishable key is
-   public-safe by design; Row Level Security protects the data. */
+/* Supabase connection is inlined here so this file works on its own.
+   The publishable key is public-safe by design; Row Level Security protects the data. */
 const CONFIG = {
   url:  "https://kastwhglsdhrcugreynx.supabase.co",
   anon: "sb_publishable_kjiLhHo4sdp2yj_FU4cLCw_IO4J7Cdv"
@@ -220,20 +271,21 @@ const CONFIG = {
 </script>
 <script>
 const STEPS=["Quoted","Ordered","Shipping","Delivered"];
+const URGENCIES=["High","Medium","Low"];
 const fmt=n=>Number(n||0).toLocaleString("en-US");
 const today=()=>new Date().toISOString().slice(0,10);
 const daysAgo=d=>(Date.now()-new Date(d).getTime())/86400000;
 
 let db=null, parts=[], offers=[];
-let activeFilter="all", activeSort="need", searchTerm="";
+let activeFilter="all", activeSort="urgency", searchTerm="";
 
-/* ---- config guard: show a helpful setup card if keys are missing ---- */
 function configured(){
   return typeof CONFIG !== "undefined" && CONFIG.url && CONFIG.anon
     && !CONFIG.url.includes("YOUR_") && !CONFIG.anon.includes("YOUR_");
 }
 if(!configured()){
   document.getElementById("controls").style.display="none";
+  document.getElementById("legend").style.display="none";
   document.getElementById("board").innerHTML=`
     <div class="setup">
       <h2>Add your Supabase keys to go live</h2>
@@ -276,12 +328,28 @@ async function fetchAll(){
 /* ---- derived ---- */
 const offersFor=pn=>offers.filter(o=>o.pn===pn);
 const sourced=pn=>offersFor(pn).reduce((s,o)=>s+(+o.qty||0),0);
+const urgOf=p=>URGENCIES.includes(p.urgency)?p.urgency:"Medium";
 function coverage(p){
   const s=sourced(p.pn);
   const pct=p.required?Math.min(100,(s/p.required)*100):0;
   return {sourced:s,pct,need:Math.max(0,p.required-s)};
 }
 function stateOf(p){const{pct}=coverage(p);return pct>=100?"full":pct<=0?"gap":"partial";}
+
+/* segments of the coverage bar, coloured by each offer's status.
+   Most-advanced status anchored left; total width capped at 100%. */
+function segmentsFor(p){
+  const rank={Delivered:0,Shipping:1,Ordered:2,Quoted:3};
+  const os=offersFor(p.pn).slice().sort((a,b)=>(rank[a.status]??9)-(rank[b.status]??9));
+  let acc=0; const segs=[];
+  for(const o of os){
+    if(acc>=100) break;
+    let w=p.required?(Number(o.qty||0)/p.required)*100:0;
+    if(acc+w>100) w=100-acc;
+    if(w>0){segs.push({status:o.status||"Quoted",pct:w});acc+=w;}
+  }
+  return segs;
+}
 
 /* ---- program summary ---- */
 function renderProgram(){
@@ -317,7 +385,9 @@ function visibleParts(){
   if(activeFilter!=="all")ps=ps.filter(x=>x.st===activeFilter);
   if(searchTerm)ps=ps.filter(x=>x.p.pn.toLowerCase().includes(searchTerm)||(x.p.descr||"").toLowerCase().includes(searchTerm));
   const newest=pn=>Math.max(0,...offersFor(pn).map(o=>new Date(o.entered||0).getTime()));
+  const urank={High:0,Medium:1,Low:2};
   ps.sort((a,b)=>{switch(activeSort){
+    case"urgency":{const d=(urank[urgOf(a.p)]-urank[urgOf(b.p)]);return d!==0?d:(b.c.need-a.c.need);}
     case"need":return b.c.need-a.c.need;
     case"cov":return a.c.pct-b.c.pct;
     case"qty":return b.p.required-a.p.required;
@@ -333,15 +403,17 @@ function renderBoard(){
   board.innerHTML=ps.map(({p,c,st})=>{
     const covLabel=st==="full"?"Covered":`${c.pct.toFixed(0)}%`;
     const os=offersFor(p.pn);
-    return `<div class="card s-${st}"><div class="rail"></div><div class="card-body">
+    const urg=urgOf(p);
+    const segs=segmentsFor(p).map(s=>`<div class="seg st-${s.status.toLowerCase()}" style="width:${s.pct}%"></div>`).join("");
+    return `<div class="card u-${urg.toLowerCase()}"><div class="rail"></div><div class="card-body">
       <div class="card-top">
         <div><span class="pn">${p.pn}</span>
-          ${p.auto?`<span class="tags"><span class="tag auto">Auto Q1</span></span>`:``}
+          <span class="tags"><span class="tag urg urg-${urg.toLowerCase()}" data-urg="${p.pn}" title="Click to change urgency">${urg}</span>${p.auto?`<span class="tag auto">Auto Q1</span>`:``}</span>
           <span class="desc">${p.descr||""}</span></div>
         <span class="cov ${st}">${covLabel}</span>
       </div>
       <div class="cov-row">
-        <div class="meter"><div class="fill ${st==='full'?'':st==='gap'?'gap empty':'partial'}" style="width:${c.pct}%"></div>
+        <div class="meter seged">${segs}
           <div class="ticks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
         <div class="cov-nums"><b>${fmt(c.sourced)}</b> / ${fmt(p.required)}
           ${c.need>0?`· <span class="need">need ${fmt(c.need)}</span>`:`· <span style="color:var(--full)">complete</span>`}</div>
@@ -377,7 +449,14 @@ document.getElementById("board").addEventListener("click",async e=>{
   const add=e.target.closest("[data-add]");
   const step=e.target.closest("[data-step]");
   const del=e.target.closest("[data-del]");
+  const urg=e.target.closest("[data-urg]");
   if(add){openModal(add.dataset.add);}
+  else if(urg){
+    const p=parts.find(x=>x.pn===urg.dataset.urg); if(!p)return;
+    const next=URGENCIES[(URGENCIES.indexOf(urgOf(p))+1)%URGENCIES.length];
+    await db.from("parts").update({urgency:next}).eq("pn",p.pn);
+    await refresh();
+  }
   else if(step){
     await db.from("offers").update({status:step.dataset.to}).eq("id",step.dataset.step);
     await refresh();
@@ -393,7 +472,7 @@ document.getElementById("filters").addEventListener("click",e=>{
 document.getElementById("sort").addEventListener("change",e=>{activeSort=e.target.value;renderBoard();});
 document.getElementById("search").addEventListener("input",e=>{searchTerm=e.target.value.toLowerCase().trim();renderBoard();});
 
-/* ---- modal ---- */
+/* ---- add-offer modal ---- */
 const scrim=document.getElementById("scrim");
 function openModal(pn){
   const sel=document.getElementById("f-part");
@@ -404,10 +483,9 @@ function openModal(pn){
   scrim.classList.add("on");document.getElementById("f-qty").focus();
 }
 const closeModal=()=>scrim.classList.remove("on");
-document.getElementById("addBtn").addEventListener("click",()=>{if(configured())openModal(null);});
+document.getElementById("addBtn").addEventListener("click",()=>{if(configured()&&parts.length)openModal(null);});
 document.getElementById("cancelBtn").addEventListener("click",closeModal);
 scrim.addEventListener("click",e=>{if(e.target===scrim)closeModal();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
 
 document.getElementById("saveBtn").addEventListener("click",async()=>{
   const qty=+document.getElementById("f-qty").value;
@@ -426,6 +504,38 @@ document.getElementById("saveBtn").addEventListener("click",async()=>{
   if(error){alert("Could not save: "+error.message);return;}
   closeModal(); await refresh();
 });
+
+/* ---- add-part modal ---- */
+const scrim2=document.getElementById("scrim2");
+function openPartModal(){
+  ["f2-pn","f2-desc","f2-req"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f2-urg").value="Medium";
+  document.getElementById("f2-auto").checked=false;
+  scrim2.classList.add("on");document.getElementById("f2-pn").focus();
+}
+const closePartModal=()=>scrim2.classList.remove("on");
+document.getElementById("addPartBtn").addEventListener("click",()=>{if(configured())openPartModal();});
+document.getElementById("cancelPartBtn").addEventListener("click",closePartModal);
+scrim2.addEventListener("click",e=>{if(e.target===scrim2)closePartModal();});
+
+document.getElementById("savePartBtn").addEventListener("click",async()=>{
+  const pn=document.getElementById("f2-pn").value.trim();
+  if(!pn){alert("Enter a part number.");return;}
+  if(parts.some(p=>p.pn.toLowerCase()===pn.toLowerCase())){alert("That part is already on the list.");return;}
+  const row={
+    pn,
+    descr:document.getElementById("f2-desc").value.trim(),
+    required:+document.getElementById("f2-req").value||0,
+    urgency:document.getElementById("f2-urg").value,
+    auto:document.getElementById("f2-auto").checked,
+    sort_order:Math.max(0,...parts.map(p=>p.sort_order||0))+1
+  };
+  const {error}=await db.from("parts").insert(row);
+  if(error){alert("Could not add part: "+error.message);return;}
+  closePartModal(); await refresh();
+});
+
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();}});
 
 /* ---- export ---- */
 document.getElementById("exportBtn").addEventListener("click",()=>{
