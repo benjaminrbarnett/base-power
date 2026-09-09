@@ -229,17 +229,16 @@ let activeFilter="all", activeSort="need", searchTerm="";
 
 /* ---- config guard: show a helpful setup card if keys are missing ---- */
 function configured(){
-  return window.CONFIG && !CONFIG.url.includes("YOUR_") && !CONFIG.anon.includes("YOUR_");
+  return typeof CONFIG !== "undefined" && CONFIG.url && CONFIG.anon
+    && !CONFIG.url.includes("YOUR_") && !CONFIG.anon.includes("YOUR_");
 }
 if(!configured()){
   document.getElementById("controls").style.display="none";
   document.getElementById("board").innerHTML=`
     <div class="setup">
       <h2>Add your Supabase keys to go live</h2>
-      <p>1. Create a project at supabase.com, then run <code>supabase/schema.sql</code> in the SQL editor.</p>
-      <p>2. In <code>config.js</code>, paste your project <code>url</code> and <code>anon</code> key
-         (Project Settings → API).</p>
-      <p>3. Redeploy. This dashboard will then read and write the live database.</p>
+      <p>Fill in <code>CONFIG.url</code> and <code>CONFIG.anon</code> near the bottom of this
+         file with your Supabase project URL and publishable key, then redeploy.</p>
     </div>`;
   document.getElementById("liveTxt").textContent="not configured";
 } else {
@@ -268,7 +267,7 @@ async function fetchAll(){
   if(pr.error||of.error){
     document.getElementById("board").innerHTML=
       `<div class="setup"><h2>Couldn't reach the database</h2>
-       <p>${(pr.error||of.error).message}. Check your keys in <code>config.js</code> and that the schema has been run.</p></div>`;
+       <p>${(pr.error||of.error).message}. Check the keys near the bottom of this file and that the schema has been run.</p></div>`;
     return;
   }
   parts=pr.data||[]; offers=of.data||[];
