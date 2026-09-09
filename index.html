@@ -126,11 +126,10 @@
   .offers-h .lbl{font-size:11.5px;color:var(--muted)}
   .add-offer{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:4px;padding:4px 10px;font-size:12px;font-weight:550}
   .add-offer:hover{border-color:var(--accent);color:var(--accent)}
-  .offer{display:grid;grid-template-columns:auto auto auto auto 1fr auto;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line-soft)}
+  .offer{display:grid;grid-template-columns:auto auto auto 1fr auto;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line-soft)}
   .offer:last-child{border-bottom:none}
   .offer .oq{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
-  .offer .op{font-family:var(--mono);color:var(--muted)}
-  .offer .oe{font-family:var(--mono);color:#c9d3dd;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .offer .op{font-family:var(--mono);color:var(--text)}
   .offer .om{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:9px;flex-wrap:wrap}
   .offer .om .dot{color:var(--faint)}
   .new-badge{font-size:9.5px;font-weight:700;letter-spacing:.04em;color:#7fd4ff;background:rgba(59,157,255,.14);border:1px solid rgba(59,157,255,.3);padding:1px 5px;border-radius:3px;margin-left:2px}
@@ -347,7 +346,6 @@ const STEPS=["Quoted","Ordered","Receiving","Shipping","Delivered"];
 const URGENCIES=["High","Medium","Low"];
 const fmt=n=>Number(n||0).toLocaleString("en-US");
 const money=v=>"$"+(+v||0).toFixed((+v||0)<1?4:2);
-const extPrice=(q,p)=>"$"+((+q||0)*(+p||0)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const today=()=>new Date().toISOString().slice(0,10);
 const daysAgo=d=>(Date.now()-new Date(d).getTime())/86400000;
 
@@ -519,7 +517,6 @@ function offerRow(o){
   return `<div class="offer">
     <span class="oq">${fmt(+o.qty||0)}</span>
     <span class="op">${money(o.price)}</span>
-    <span class="oe" title="Extended = qty × unit price">= ${extPrice(o.qty,o.price)}</span>
     <span class="om">${meta}${isNew?`<span class="new-badge">NEW</span>`:""}</span>
     <span class="stepper-wrap"><span class="stepper">${stepper}</span>
       ${o.eta&&(o.status==="Ordered"||o.status==="Receiving"||o.status==="Shipping")?`<span class="eta">ETA ${String(o.eta).slice(5)}</span>`:""}
@@ -534,7 +531,7 @@ function showTip(o,x,y){
   if(!o){tip.classList.remove("on");return;}
   const p=parts.find(pp=>pp.pn===o.pn);
   tip.innerHTML=`<span class="tst" style="color:var(--st-${(o.status||'quoted').toLowerCase()})">${o.status||"Quoted"}</span>
-    &nbsp;·&nbsp;${fmt(+o.qty||0)} pcs &nbsp;·&nbsp; ${money(o.price)} &nbsp;·&nbsp; ${extPrice(o.qty,o.price)}
+    &nbsp;·&nbsp;${fmt(+o.qty||0)} pcs &nbsp;·&nbsp; ${money(o.price)}
     <br>${o.pn||""}${o.entered?` · entered ${o.entered.slice(5)}`:""}${o.paid?` · <span style="color:var(--full)">PAID</span>`:""}`;
   tip.classList.add("on");
   const w=tip.offsetWidth, h=tip.offsetHeight;
