@@ -36,6 +36,8 @@
   .btn:hover{border-color:#3d4b58;background:#26313d}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#04121f}
   .btn.primary:hover{background:#57abff;border-color:#57abff}
+  .btn.danger{color:#ff9a8a;border-color:rgba(240,85,63,.4)}
+  .btn.danger:hover{background:rgba(240,85,63,.12);border-color:var(--gap);color:#ffb3a5}
   .btn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .program{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:14px;margin:26px 0 8px}
   .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
@@ -301,13 +303,17 @@
 <!-- edit part -->
 <div class="scrim" id="scrim4">
   <div class="modal">
-    <h2>Edit requirement</h2>
+    <h2>Edit part</h2>
     <div class="mh-sub" id="editSub"></div>
-    <div class="field"><label for="f4-req">Required quantity</label><input type="number" id="f4-req" min="0" placeholder="e.g. 300000"></div>
+    <div class="field"><label for="f4-pn">Part number</label><input type="text" id="f4-pn" placeholder="e.g. UCC5350MCDWVR"></div>
     <div class="field"><label for="f4-desc">Description</label><input type="text" id="f4-desc" placeholder="e.g. Isolated gate driver"></div>
-    <div class="modal-actions">
-      <button class="btn" id="cancelEditBtn">Cancel</button>
-      <button class="btn primary" id="saveEditBtn">Save changes</button>
+    <div class="field"><label for="f4-req">Required quantity</label><input type="number" id="f4-req" min="0" placeholder="e.g. 300000"></div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn danger" id="deletePartBtn">Delete part</button>
+      <span style="display:flex;gap:8px">
+        <button class="btn" id="cancelEditBtn">Cancel</button>
+        <button class="btn primary" id="saveEditBtn">Save changes</button>
+      </span>
     </div>
   </div>
 </div>
@@ -621,15 +627,16 @@ document.getElementById("savePartBtn").addEventListener("click",async()=>{
   closePartModal(); await refresh();
 });
 
-/* ---- edit part (requirement) ---- */
+/* ---- edit part (part number / description / requirement / delete) ---- */
 const scrim4=document.getElementById("scrim4");
 let editingPart=null;
 function openEdit(pn){
   const p=parts.find(x=>x.pn===pn); if(!p)return;
   editingPart=pn;
-  document.getElementById("editSub").textContent=p.pn;
-  document.getElementById("f4-req").value=p.required||0;
+  document.getElementById("editSub").textContent="Editing "+p.pn;
+  document.getElementById("f4-pn").value=p.pn;
   document.getElementById("f4-desc").value=p.descr||"";
+  document.getElementById("f4-req").value=p.required||0;
   scrim4.classList.add("on");
   const el=document.getElementById("f4-req"); el.focus(); el.select();
 }
@@ -638,12 +645,29 @@ document.getElementById("cancelEditBtn").addEventListener("click",closeEdit);
 scrim4.addEventListener("click",e=>{if(e.target===scrim4)closeEdit();});
 document.getElementById("saveEditBtn").addEventListener("click",async()=>{
   if(!editingPart)return;
+  const oldPn=editingPart;
+  const newPn=document.getElementById("f4-pn").value.trim();
   const required=+document.getElementById("f4-req").value;
+  if(!newPn){alert("Enter a part number.");return;}
   if(isNaN(required)||required<0){alert("Enter a valid quantity.");return;}
-  const {error}=await db.from("parts").update({
-    required, descr:document.getElementById("f4-desc").value.trim()
-  }).eq("pn",editingPart);
-  if(error){alert("Could not save: "+error.message);return;}
+  if(newPn.toLowerCase()!==oldPn.toLowerCase() && parts.some(p=>p.pn.toLowerCase()===newPn.toLowerCase())){
+    alert("That part number is already on the list.");return;
+  }
+  const patch={pn:newPn, descr:document.getElementById("f4-desc").value.trim(), required};
+  const {error}=await db.from("parts").update(patch).eq("pn",oldPn);
+  if(error){
+    alert("Could not save: "+error.message+
+      (newPn!==oldPn?"\n\n(Renaming a part number needs the one-time foreign-key update in Supabase — see the note.)":""));
+    return;
+  }
+  closeEdit(); await refresh();
+});
+document.getElementById("deletePartBtn").addEventListener("click",async()=>{
+  if(!editingPart)return;
+  const n=offersFor(editingPart).length;
+  if(!confirm(`Delete ${editingPart}${n?` and its ${n} offer${n>1?"s":""}`:""}? This cannot be undone.`))return;
+  const {error}=await db.from("parts").delete().eq("pn",editingPart);
+  if(error){alert("Could not delete: "+error.message);return;}
   closeEdit(); await refresh();
 });
 
