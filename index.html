@@ -8,11 +8,8 @@
   :root{
     --ink:#0d1117;--surface:#151b23;--surface-2:#1b232d;--raised:#212b36;
     --line:#2a3440;--line-soft:#212a34;--text:#e7edf3;--muted:#8c9aa8;--faint:#5c6672;
-    --accent:#3b9dff;--full:#3fb950;--partial:#d6a029;--gap:#f0553f;
-    --quoted:#6a7684;
-    /* status colors used by the segmented bar + stepper */
+    --accent:#3b9dff;--full:#3fb950;--partial:#d6a029;--gap:#f0553f;--quoted:#6a7684;
     --st-quoted:#e0b23a;--st-ordered:#8a7fe0;--st-shipping:#3b9dff;--st-delivered:#49c760;
-    /* urgency */
     --urg-high:#f0553f;--urg-medium:#d6a029;--urg-low:#5a6675;
     --radius:6px;
     --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
@@ -24,12 +21,11 @@
     font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
   header{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#131a22,#0d1117)}
-  .head-inner{max-width:1080px;margin:0 auto;padding:22px 20px 20px;
-    display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
-  .title h1{margin:0;font-size:21px;font-weight:650;letter-spacing:-.01em}
-  .title .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
-  .title .sub b{color:var(--text);font-weight:550}
-  .live{display:inline-flex;align-items:center;gap:5px;margin-left:8px;color:var(--faint)}
+  .head-inner{max-width:1080px;margin:0 auto;padding:24px 20px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .title h1{margin:0;font-size:22px;font-weight:650;letter-spacing:-.01em}
+  .title .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+  .live{display:inline-flex;align-items:center;gap:5px;margin-left:6px;color:var(--faint)}
   .live .pip{width:6px;height:6px;border-radius:50%;background:var(--faint)}
   .live.on{color:var(--full)}.live.on .pip{background:var(--full);box-shadow:0 0 6px var(--full)}
   .head-actions{display:flex;gap:8px}
@@ -41,13 +37,15 @@
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#04121f}
   .btn.primary:hover{background:#57abff;border-color:#57abff}
   .btn:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-  .program{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px;margin:24px 0 8px}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
-  .stat .k{font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+  .program{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:14px;margin:26px 0 8px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+  .stat .k{font-size:11.5px;color:var(--muted);letter-spacing:.03em}
   .stat .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin-top:3px}
   .stat .v small{font-size:14px;color:var(--muted);font-weight:500}
   .stat.hero{grid-column:1;display:flex;flex-direction:column;justify-content:space-between}
-  .hero .meter{margin-top:12px}
+  .hero .v{font-size:34px;margin-top:6px;line-height:1}
+  .hero .v-sub{font-size:12.5px;color:var(--muted);margin-top:8px;letter-spacing:.01em}
+  .hero .meter{margin-top:18px}
   .stat.gap-tile .v{color:var(--gap)}
   .meter{position:relative;height:14px;border-radius:3px;background:#0c1218;
     border:1px solid var(--line-soft);overflow:hidden}
@@ -56,16 +54,13 @@
     background:linear-gradient(90deg,#2f8a44,#49c760);transition:width .5s cubic-bezier(.4,0,.2,1)}
   .meter .fill.partial{background:linear-gradient(90deg,#a9791d,#e0b23a)}
   .meter .fill.gap{background:linear-gradient(90deg,#a5372a,#f0553f)}
-  .meter .fill.empty{background:transparent}
-  .meter .fill::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;
-    background:rgba(255,255,255,.55);box-shadow:0 0 6px rgba(255,255,255,.4)}
-  /* segmented (per-part) bar coloured by offer status */
   .meter.seged{display:flex}
-  .seg{height:100%;flex:0 0 auto;transition:width .4s ease}
+  .seg{height:100%;flex:0 0 auto;transition:width .4s ease;cursor:default}
   .seg.st-quoted{background:linear-gradient(90deg,#c99a1e,var(--st-quoted))}
   .seg.st-ordered{background:linear-gradient(90deg,#6f64c9,var(--st-ordered))}
   .seg.st-shipping{background:linear-gradient(90deg,#2f7fd6,var(--st-shipping))}
   .seg.st-delivered{background:linear-gradient(90deg,#2f8a44,var(--st-delivered))}
+  .seg:hover{filter:brightness(1.25)}
   .meter .ticks{position:absolute;inset:0;pointer-events:none}
   .meter .ticks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.06)}
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin:2px 0 0;font-size:11px;color:var(--muted)}
@@ -77,10 +72,11 @@
   .segmented button.on{background:var(--raised);color:var(--text)}
   .segmented button .c{color:var(--faint);margin-left:5px;font-variant-numeric:tabular-nums}
   .spacer{flex:1}
-  select,input[type=text],input[type=number],input[type=date]{
+  select,input[type=text],input[type=number],input[type=date],input[type=file]{
     background:var(--surface);border:1px solid var(--line);color:var(--text);
     border-radius:var(--radius);padding:7px 10px;font-size:13px;font-family:var(--sans)}
   input::placeholder{color:var(--faint)}
+  input[type=file]{width:100%;padding:8px 10px}
   .search{width:170px}
   .board{display:flex;flex-direction:column;gap:10px}
   .card{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
@@ -119,6 +115,7 @@
   .offer .om{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:9px;flex-wrap:wrap}
   .offer .om .dot{color:var(--faint)}
   .new-badge{font-size:9.5px;font-weight:700;letter-spacing:.04em;color:#7fd4ff;background:rgba(59,157,255,.14);border:1px solid rgba(59,157,255,.3);padding:1px 5px;border-radius:3px;margin-left:2px}
+  .stepper-wrap{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}
   .stepper{display:inline-flex;align-items:center}
   .step{font-size:11px;font-weight:600;color:var(--faint);background:var(--surface-2);border:1px solid var(--line);border-right:none;padding:4px 10px;cursor:pointer;transition:color .12s,background .12s}
   .step:first-child{border-radius:4px 0 0 4px}
@@ -130,7 +127,11 @@
   .step.cur.st-ordered{background:var(--st-ordered);border-color:var(--st-ordered)}
   .step.cur.st-shipping{background:var(--st-shipping);border-color:var(--st-shipping)}
   .step.cur.st-delivered{background:var(--st-delivered);border-color:var(--st-delivered)}
-  .eta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:10px;white-space:nowrap}
+  .eta{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+  .ord-btn{font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:4px;padding:4px 9px;display:inline-flex;align-items:center;gap:4px}
+  .ord-btn:hover{color:var(--text);border-color:#3d4b58}
+  .ord-btn.paid-on{background:rgba(63,185,80,.15);border-color:rgba(63,185,80,.4);color:#7ee08a}
+  .ord-btn .fcount{color:var(--faint);font-variant-numeric:tabular-nums}
   .del-offer{background:none;border:none;color:var(--faint);font-size:15px;line-height:1;cursor:pointer;padding:2px 4px}
   .del-offer:hover{color:var(--gap)}
   .empty-offers{color:var(--faint);font-size:12.5px;font-style:italic;padding:4px 0}
@@ -146,11 +147,24 @@
   .checkrow input{width:auto}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  .file-list{margin-top:16px;border-top:1px solid var(--line-soft);padding-top:12px}
+  .file-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-soft)}
+  .file-row:last-child{border-bottom:none}
+  .file-row a{color:var(--accent);text-decoration:none;font-size:13px;word-break:break-all}
+  .file-row a:hover{text-decoration:underline}
+  .file-row .fx{background:none;border:none;color:var(--faint);font-size:15px;cursor:pointer;padding:0 4px}
+  .file-row .fx:hover{color:var(--gap)}
+  .file-empty{color:var(--faint);font-size:12.5px;font-style:italic;padding:6px 0}
   .footnote{color:var(--faint);font-size:11.5px;margin-top:26px;text-align:center}
   .setup{background:var(--surface);border:1px solid var(--partial);border-radius:var(--radius);padding:22px 24px;margin-top:8px}
   .setup h2{margin:0 0 8px;font-size:16px;color:var(--partial)}
   .setup p{color:var(--muted);margin:6px 0}
   .setup code{font-family:var(--mono);color:var(--text);background:#0c1218;padding:1px 5px;border-radius:3px}
+  .tip{position:fixed;z-index:100;pointer-events:none;background:#0c1218;border:1px solid var(--line);
+    border-radius:5px;padding:6px 9px;font-family:var(--mono);font-size:11.5px;color:var(--text);
+    box-shadow:0 4px 14px rgba(0,0,0,.5);display:none;max-width:260px}
+  .tip.on{display:block}
+  .tip .tst{font-weight:700}
   @media(max-width:720px){
     .program{grid-template-columns:1fr 1fr}
     .stat.hero{grid-column:1/-1}
@@ -165,8 +179,8 @@
 <header>
   <div class="head-inner">
     <div class="title">
-      <h1>Base Power — Supply Program</h1>
-      <div class="sub">Sourced by <b>N.F. Smith &amp; Associates</b>
+      <h1>Base Power &lt;&gt; Smith &amp; Associates</h1>
+      <div class="sub">Supply program
         <span class="live" id="live"><span class="pip"></span><span id="liveTxt">connecting…</span></span></div>
     </div>
     <div class="head-actions">
@@ -208,8 +222,10 @@
 
   <div class="board" id="board"></div>
 
-  <p class="footnote">Live from Supabase. Edits made here update the shared database for everyone viewing. Click a part's urgency badge to change it.</p>
+  <p class="footnote">Live from Supabase. Hover a bar segment for its order. Files and payment status attach once a quote becomes an order.</p>
 </div>
+
+<div class="tip" id="tip"></div>
 
 <!-- add offer -->
 <div class="scrim" id="scrim">
@@ -260,6 +276,23 @@
   </div>
 </div>
 
+<!-- order files -->
+<div class="scrim" id="scrim3">
+  <div class="modal">
+    <h2>Order documents</h2>
+    <div class="mh-sub" id="filesSub"></div>
+    <div class="field">
+      <label for="f3-file">Upload invoice, packing slip, PO, etc.</label>
+      <input type="file" id="f3-file">
+    </div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn primary" id="uploadBtn">Upload</button>
+      <button class="btn" id="closeFilesBtn">Done</button>
+    </div>
+    <div class="file-list" id="fileList"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* Supabase connection is inlined here so this file works on its own.
@@ -268,16 +301,19 @@ const CONFIG = {
   url:  "https://kastwhglsdhrcugreynx.supabase.co",
   anon: "sb_publishable_kjiLhHo4sdp2yj_FU4cLCw_IO4J7Cdv"
 };
+const BUCKET = "order-files";
 </script>
 <script>
 const STEPS=["Quoted","Ordered","Shipping","Delivered"];
 const URGENCIES=["High","Medium","Low"];
 const fmt=n=>Number(n||0).toLocaleString("en-US");
+const money=v=>"$"+(+v||0).toFixed((+v||0)<1?4:2);
 const today=()=>new Date().toISOString().slice(0,10);
 const daysAgo=d=>(Date.now()-new Date(d).getTime())/86400000;
 
 let db=null, parts=[], offers=[];
 let activeFilter="all", activeSort="urgency", searchTerm="";
+let currentFileOffer=null;
 
 function configured(){
   return typeof CONFIG !== "undefined" && CONFIG.url && CONFIG.anon
@@ -287,11 +323,8 @@ if(!configured()){
   document.getElementById("controls").style.display="none";
   document.getElementById("legend").style.display="none";
   document.getElementById("board").innerHTML=`
-    <div class="setup">
-      <h2>Add your Supabase keys to go live</h2>
-      <p>Fill in <code>CONFIG.url</code> and <code>CONFIG.anon</code> near the bottom of this
-         file with your Supabase project URL and publishable key, then redeploy.</p>
-    </div>`;
+    <div class="setup"><h2>Add your Supabase keys to go live</h2>
+      <p>Fill in <code>CONFIG.url</code> and <code>CONFIG.anon</code> near the bottom of this file, then redeploy.</p></div>`;
   document.getElementById("liveTxt").textContent="not configured";
 } else {
   db = supabase.createClient(CONFIG.url, CONFIG.anon);
@@ -327,8 +360,10 @@ async function fetchAll(){
 
 /* ---- derived ---- */
 const offersFor=pn=>offers.filter(o=>o.pn===pn);
+const offerById=id=>offers.find(o=>String(o.id)===String(id));
 const sourced=pn=>offersFor(pn).reduce((s,o)=>s+(+o.qty||0),0);
 const urgOf=p=>URGENCIES.includes(p.urgency)?p.urgency:"Medium";
+const isOrder=o=>o.status&&o.status!=="Quoted";
 function coverage(p){
   const s=sourced(p.pn);
   const pct=p.required?Math.min(100,(s/p.required)*100):0;
@@ -336,8 +371,6 @@ function coverage(p){
 }
 function stateOf(p){const{pct}=coverage(p);return pct>=100?"full":pct<=0?"gap":"partial";}
 
-/* segments of the coverage bar, coloured by each offer's status.
-   Most-advanced status anchored left; total width capped at 100%. */
 function segmentsFor(p){
   const rank={Delivered:0,Shipping:1,Ordered:2,Quoted:3};
   const os=offersFor(p.pn).slice().sort((a,b)=>(rank[a.status]??9)-(rank[b.status]??9));
@@ -346,29 +379,30 @@ function segmentsFor(p){
     if(acc>=100) break;
     let w=p.required?(Number(o.qty||0)/p.required)*100:0;
     if(acc+w>100) w=100-acc;
-    if(w>0){segs.push({status:o.status||"Quoted",pct:w});acc+=w;}
+    if(w>0){segs.push({id:o.id,status:o.status||"Quoted",pct:w});acc+=w;}
   }
   return segs;
 }
 
 /* ---- program summary ---- */
 function renderProgram(){
-  let reqTot=0,srcTot=0,full=0,gap=0,value=0;
+  let reqTot=0,srcTot=0,full=0,gap=0;
   parts.forEach(p=>{const c=coverage(p);reqTot+=p.required;srcTot+=Math.min(c.sourced,p.required);
     if(c.pct>=100)full++;if(c.pct<=0)gap++;});
-  offers.forEach(o=>value+=(+o.qty||0)*(+o.price||0));
   const pct=reqTot?(srcTot/reqTot)*100:0;
   const cls=pct>=80?"":pct<40?"gap":"partial";
   document.getElementById("program").innerHTML=`
     <div class="stat hero">
-      <div><div class="k">Program coverage — units sourced across the BOM</div>
-        <div class="v">${pct.toFixed(0)}<small>% of ${fmt(reqTot)} units</small></div></div>
+      <div>
+        <div class="k">Program coverage</div>
+        <div class="v">${pct.toFixed(0)}%</div>
+        <div class="v-sub">of ${fmt(reqTot)} units sourced across the BOM</div>
+      </div>
       <div class="meter lg"><div class="fill ${cls}" style="width:${pct}%"></div>
         <div class="ticks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
     </div>
     <div class="stat"><div class="k">Lines fully covered</div><div class="v">${full}<small> / ${parts.length}</small></div></div>
-    <div class="stat gap-tile"><div class="k">Lines with no coverage</div><div class="v">${gap}</div></div>
-    <div class="stat"><div class="k">Quoted value</div><div class="v">$${(value/1e6).toFixed(2)}<small>M</small></div></div>`;
+    <div class="stat gap-tile"><div class="k">Lines with no coverage</div><div class="v">${gap}</div></div>`;
 }
 
 function renderCounts(){
@@ -404,7 +438,7 @@ function renderBoard(){
     const covLabel=st==="full"?"Covered":`${c.pct.toFixed(0)}%`;
     const os=offersFor(p.pn);
     const urg=urgOf(p);
-    const segs=segmentsFor(p).map(s=>`<div class="seg st-${s.status.toLowerCase()}" style="width:${s.pct}%"></div>`).join("");
+    const segs=segmentsFor(p).map(s=>`<div class="seg st-${s.status.toLowerCase()}" style="width:${s.pct}%" data-offer="${s.id}"></div>`).join("");
     return `<div class="card u-${urg.toLowerCase()}"><div class="rail"></div><div class="card-body">
       <div class="card-top">
         <div><span class="pn">${p.pn}</span>
@@ -434,15 +468,41 @@ function offerRow(o){
   }).join("");
   const meta=[o.dc?`DC ${o.dc}`:"",o.coo||"",o.lead||"",o.entered?`entered ${o.entered.slice(5)}`:""]
     .filter(Boolean).map((m,i)=>`${i?'<span class="dot">·</span>':''}${m}`).join(" ");
+  const orderActions = isOrder(o) ? `
+      <button class="ord-btn ${o.paid?'paid-on':''}" data-paid="${o.id}">${o.paid?'Paid':'Mark paid'}</button>
+      <button class="ord-btn" data-files="${o.id}">Files</button>` : ``;
   return `<div class="offer">
     <span class="oq">${fmt(+o.qty||0)}</span>
-    <span class="op">$${(+o.price||0).toFixed(o.price<1?4:2)}</span>
+    <span class="op">${money(o.price)}</span>
     <span class="om">${meta}${isNew?`<span class="new-badge">NEW</span>`:""}</span>
     <span class="stepper-wrap"><span class="stepper">${stepper}</span>
-      ${o.eta&&(o.status==="Ordered"||o.status==="Shipping")?`<span class="eta">ETA ${String(o.eta).slice(5)}</span>`:""}</span>
+      ${o.eta&&(o.status==="Ordered"||o.status==="Shipping")?`<span class="eta">ETA ${String(o.eta).slice(5)}</span>`:""}
+      ${orderActions}</span>
     <button class="del-offer" data-del="${o.id}" title="Remove offer">×</button>
   </div>`;
 }
+
+/* ---- bar hover tooltip ---- */
+const tip=document.getElementById("tip");
+function showTip(o,x,y){
+  if(!o){tip.classList.remove("on");return;}
+  const p=parts.find(pp=>pp.pn===o.pn);
+  tip.innerHTML=`<span class="tst" style="color:var(--st-${(o.status||'quoted').toLowerCase()})">${o.status||"Quoted"}</span>
+    &nbsp;·&nbsp;${fmt(+o.qty||0)} pcs &nbsp;·&nbsp; ${money(o.price)}
+    <br>${o.pn||""}${o.entered?` · entered ${o.entered.slice(5)}`:""}${o.paid?` · <span style="color:var(--full)">PAID</span>`:""}`;
+  tip.classList.add("on");
+  const w=tip.offsetWidth, h=tip.offsetHeight;
+  let left=x+12, top=y+14;
+  if(left+w>window.innerWidth-8) left=x-w-12;
+  if(top+h>window.innerHeight-8) top=y-h-12;
+  tip.style.left=left+"px"; tip.style.top=top+"px";
+}
+document.getElementById("board").addEventListener("mousemove",e=>{
+  const seg=e.target.closest(".seg[data-offer]");
+  if(seg){ showTip(offerById(seg.dataset.offer), e.clientX, e.clientY); }
+  else tip.classList.remove("on");
+});
+document.getElementById("board").addEventListener("mouseleave",()=>tip.classList.remove("on"));
 
 /* ---- writes ---- */
 document.getElementById("board").addEventListener("click",async e=>{
@@ -450,16 +510,21 @@ document.getElementById("board").addEventListener("click",async e=>{
   const step=e.target.closest("[data-step]");
   const del=e.target.closest("[data-del]");
   const urg=e.target.closest("[data-urg]");
+  const paid=e.target.closest("[data-paid]");
+  const files=e.target.closest("[data-files]");
   if(add){openModal(add.dataset.add);}
+  else if(files){openFiles(files.dataset.files);}
+  else if(paid){
+    const o=offerById(paid.dataset.paid); if(!o)return;
+    await db.from("offers").update({paid:!o.paid}).eq("id",o.id); await refresh();
+  }
   else if(urg){
     const p=parts.find(x=>x.pn===urg.dataset.urg); if(!p)return;
     const next=URGENCIES[(URGENCIES.indexOf(urgOf(p))+1)%URGENCIES.length];
-    await db.from("parts").update({urgency:next}).eq("pn",p.pn);
-    await refresh();
+    await db.from("parts").update({urgency:next}).eq("pn",p.pn); await refresh();
   }
   else if(step){
-    await db.from("offers").update({status:step.dataset.to}).eq("id",step.dataset.step);
-    await refresh();
+    await db.from("offers").update({status:step.dataset.to}).eq("id",step.dataset.step); await refresh();
   } else if(del){
     if(confirm("Remove this offer?")){await db.from("offers").delete().eq("id",del.dataset.del);await refresh();}
   }
@@ -486,21 +551,19 @@ const closeModal=()=>scrim.classList.remove("on");
 document.getElementById("addBtn").addEventListener("click",()=>{if(configured()&&parts.length)openModal(null);});
 document.getElementById("cancelBtn").addEventListener("click",closeModal);
 scrim.addEventListener("click",e=>{if(e.target===scrim)closeModal();});
-
 document.getElementById("saveBtn").addEventListener("click",async()=>{
   const qty=+document.getElementById("f-qty").value;
   if(!qty||qty<=0){alert("Enter a quantity.");return;}
   const eta=document.getElementById("f-eta").value;
-  const row={
-    pn:document.getElementById("f-part").value,
-    qty, price:+document.getElementById("f-price").value||0,
+  const {error}=await db.from("offers").insert({
+    pn:document.getElementById("f-part").value, qty,
+    price:+document.getElementById("f-price").value||0,
     dc:document.getElementById("f-dc").value.trim(),
     coo:document.getElementById("f-coo").value.trim(),
     lead:document.getElementById("f-lead").value.trim(),
     status:document.getElementById("f-status").value,
     entered:today(), eta:eta||null
-  };
-  const {error}=await db.from("offers").insert(row);
+  });
   if(error){alert("Could not save: "+error.message);return;}
   closeModal(); await refresh();
 });
@@ -517,25 +580,66 @@ const closePartModal=()=>scrim2.classList.remove("on");
 document.getElementById("addPartBtn").addEventListener("click",()=>{if(configured())openPartModal();});
 document.getElementById("cancelPartBtn").addEventListener("click",closePartModal);
 scrim2.addEventListener("click",e=>{if(e.target===scrim2)closePartModal();});
-
 document.getElementById("savePartBtn").addEventListener("click",async()=>{
   const pn=document.getElementById("f2-pn").value.trim();
   if(!pn){alert("Enter a part number.");return;}
   if(parts.some(p=>p.pn.toLowerCase()===pn.toLowerCase())){alert("That part is already on the list.");return;}
-  const row={
-    pn,
-    descr:document.getElementById("f2-desc").value.trim(),
+  const {error}=await db.from("parts").insert({
+    pn, descr:document.getElementById("f2-desc").value.trim(),
     required:+document.getElementById("f2-req").value||0,
     urgency:document.getElementById("f2-urg").value,
     auto:document.getElementById("f2-auto").checked,
     sort_order:Math.max(0,...parts.map(p=>p.sort_order||0))+1
-  };
-  const {error}=await db.from("parts").insert(row);
+  });
   if(error){alert("Could not add part: "+error.message);return;}
   closePartModal(); await refresh();
 });
 
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();}});
+/* ---- order files (Supabase Storage) ---- */
+const scrim3=document.getElementById("scrim3");
+async function openFiles(id){
+  const o=offerById(id); if(!o)return;
+  currentFileOffer=id;
+  document.getElementById("filesSub").textContent=`${o.pn} · ${fmt(+o.qty||0)} pcs · ${money(o.price)} · ${o.status}`;
+  document.getElementById("f3-file").value="";
+  document.getElementById("fileList").innerHTML=`<div class="file-empty">Loading…</div>`;
+  scrim3.classList.add("on");
+  await loadFiles();
+}
+const closeFiles=()=>{scrim3.classList.remove("on");currentFileOffer=null;};
+async function loadFiles(){
+  const list=document.getElementById("fileList");
+  const {data,error}=await db.storage.from(BUCKET).list(currentFileOffer,{limit:100,sortBy:{column:"created_at",order:"desc"}});
+  if(error){list.innerHTML=`<div class="file-empty">Couldn't load files: ${error.message}</div>`;return;}
+  const files=(data||[]).filter(f=>f.name!==".emptyFolderPlaceholder");
+  if(!files.length){list.innerHTML=`<div class="file-empty">No documents yet.</div>`;return;}
+  list.innerHTML=files.map(f=>{
+    const path=`${currentFileOffer}/${f.name}`;
+    const url=db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    return `<div class="file-row"><a href="${url}" target="_blank" rel="noopener">${f.name}</a>
+      <button class="fx" data-rm="${f.name}" title="Delete">×</button></div>`;
+  }).join("");
+}
+document.getElementById("uploadBtn").addEventListener("click",async()=>{
+  const input=document.getElementById("f3-file");
+  const file=input.files&&input.files[0];
+  if(!file){alert("Choose a file first.");return;}
+  const clean=file.name.replace(/[^\w.\-]+/g,"_");
+  const {error}=await db.storage.from(BUCKET).upload(`${currentFileOffer}/${clean}`,file,{upsert:true,contentType:file.type||undefined});
+  if(error){alert("Upload failed: "+error.message);return;}
+  input.value=""; await loadFiles();
+});
+document.getElementById("fileList").addEventListener("click",async e=>{
+  const rm=e.target.closest("[data-rm]"); if(!rm)return;
+  if(!confirm("Delete this document?"))return;
+  const {error}=await db.storage.from(BUCKET).remove([`${currentFileOffer}/${rm.dataset.rm}`]);
+  if(error){alert("Delete failed: "+error.message);return;}
+  await loadFiles();
+});
+document.getElementById("closeFilesBtn").addEventListener("click",closeFiles);
+scrim3.addEventListener("click",e=>{if(e.target===scrim3)closeFiles();});
+
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();closeFiles();}});
 
 /* ---- export ---- */
 document.getElementById("exportBtn").addEventListener("click",()=>{
