@@ -91,6 +91,16 @@
   .card-body{flex:1;min-width:0;padding:15px 17px}
   .card-top{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .cov-right{display:inline-flex;align-items:center;gap:10px}
+  .alts{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .alts-lbl{font-size:11px;color:var(--muted);margin-right:2px}
+  .alt-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:11px;
+    color:#b9c4cf;background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:2px 4px 2px 7px}
+  .alt-x{background:none;border:none;color:var(--faint);font-size:13px;line-height:1;cursor:pointer;padding:0 2px}
+  .alt-x:hover{color:var(--gap)}
+  .alt-add{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:4px;padding:2px 9px;font-size:11px;font-weight:550}
+  .alt-add:hover{border-color:var(--accent);color:var(--accent)}
+  .offer-alt{font-family:var(--mono);font-size:11.5px;color:#7fd4ff;background:rgba(59,157,255,.1);
+    border:1px solid rgba(59,157,255,.28);border-radius:3px;padding:1px 6px;margin-right:2px}
   .edit-part{font-size:11px;font-weight:600;color:var(--muted);background:var(--surface-2);
     border:1px solid var(--line);border-radius:4px;padding:3px 9px}
   .edit-part:hover{color:var(--text);border-color:var(--accent)}
@@ -252,7 +262,8 @@
   <div class="modal">
     <h2>Add offer</h2>
     <div class="mh-sub">Stamped with today's entry date and tracked from Quoted onward.</div>
-    <div class="field"><label for="f-part">Part</label><select id="f-part"></select></div>
+    <div class="field"><label for="f-part">Requirement line</label><select id="f-part"></select></div>
+    <div class="field"><label for="f-offpn">Offered part number <span style="color:var(--faint)">(main or an alternate)</span></label><select id="f-offpn"></select></div>
     <div class="grid2">
       <div class="field"><label for="f-qty">Quantity</label><input type="number" id="f-qty" min="1" placeholder="e.g. 25000"></div>
       <div class="field"><label for="f-price">Unit price (sell)</label><input type="number" id="f-price" step="0.0001" placeholder="e.g. 12.50"></div>
@@ -327,6 +338,19 @@
         <button class="btn" id="cancelEditBtn">Cancel</button>
         <button class="btn primary" id="saveEditBtn">Save changes</button>
       </span>
+    </div>
+  </div>
+</div>
+
+<!-- add alternate -->
+<div class="scrim" id="scrim5">
+  <div class="modal">
+    <h2>Add alternate part</h2>
+    <div class="mh-sub" id="altSub"></div>
+    <div class="field"><label for="f5-pn">Alternate part number</label><input type="text" id="f5-pn" placeholder="e.g. MT53E1G16D1ZW-046 AUT:C"></div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelAltBtn">Cancel</button>
+      <button class="btn primary" id="saveAltBtn">Add alternate</button>
     </div>
   </div>
 </div>
@@ -489,6 +513,10 @@ function renderBoard(){
           <span class="desc">${p.descr||""}</span></div>
         <span class="cov-right"><button class="edit-part" data-edit="${p.pn}" title="Edit requirement">Edit</button><span class="cov ${st}">${covLabel}</span></span>
       </div>
+      <div class="alts">
+        ${(p.alternates&&p.alternates.length)?`<span class="alts-lbl">Alternates:</span>`+p.alternates.map(a=>`<span class="alt-chip">${a}<button class="alt-x" data-altrm="${p.pn}|||${a}" title="Remove alternate">×</button></span>`).join(""):""}
+        <button class="alt-add" data-altadd="${p.pn}">+ alternate</button>
+      </div>
       <div class="cov-row">
         <div class="meter seged">${segs}
           <div class="ticks"><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
@@ -514,10 +542,11 @@ function offerRow(o){
   const orderActions = isOrder(o) ? `
       <button class="ord-btn ${o.paid?'paid-on':''}" data-paid="${o.id}">${o.paid?'Paid':'Mark paid'}</button>
       <button class="ord-btn" data-files="${o.id}">Files</button>` : ``;
+  const altLabel = (o.offered_pn && o.offered_pn!==o.pn) ? `<span class="offer-alt" title="Offered as alternate">${o.offered_pn}</span>` : "";
   return `<div class="offer">
     <span class="oq">${fmt(+o.qty||0)}</span>
     <span class="op">${money(o.price)}</span>
-    <span class="om">${meta}${isNew?`<span class="new-badge">NEW</span>`:""}</span>
+    <span class="om">${altLabel}${meta}${isNew?`<span class="new-badge">NEW</span>`:""}</span>
     <span class="stepper-wrap"><span class="stepper">${stepper}</span>
       ${o.eta&&(o.status==="Ordered"||o.status==="Receiving"||o.status==="Shipping")?`<span class="eta">ETA ${String(o.eta).slice(5)}</span>`:""}
       ${orderActions}</span>
@@ -555,7 +584,16 @@ document.getElementById("board").addEventListener("click",async e=>{
   const paid=e.target.closest("[data-paid]");
   const files=e.target.closest("[data-files]");
   const edit=e.target.closest("[data-edit]");
+  const altadd=e.target.closest("[data-altadd]");
+  const altrm=e.target.closest("[data-altrm]");
   if(add){openModal(add.dataset.add);}
+  else if(altadd){openAlt(altadd.dataset.altadd);}
+  else if(altrm){
+    const [pn,alt]=altrm.dataset.altrm.split("|||");
+    const p=parts.find(x=>x.pn===pn); if(!p)return;
+    const next=(p.alternates||[]).filter(a=>a!==alt);
+    await db.from("parts").update({alternates:next}).eq("pn",pn); await refresh();
+  }
   else if(edit){openEdit(edit.dataset.edit);}
   else if(files){openFiles(files.dataset.files);}
   else if(paid){
@@ -586,14 +624,22 @@ document.getElementById("search").addEventListener("input",e=>{searchTerm=e.targ
 
 /* ---- add-offer modal ---- */
 const scrim=document.getElementById("scrim");
+function fillOfferedPn(){
+  const pn=document.getElementById("f-part").value;
+  const p=parts.find(x=>x.pn===pn);
+  const opts=p?[p.pn,...(p.alternates||[])]:[];
+  document.getElementById("f-offpn").innerHTML=opts.map(o=>`<option value="${o}">${o}</option>`).join("");
+}
 function openModal(pn){
   const sel=document.getElementById("f-part");
   sel.innerHTML=parts.map(p=>`<option value="${p.pn}">${p.pn} — ${p.descr||""}</option>`).join("");
   if(pn)sel.value=pn;
+  fillOfferedPn();
   ["f-qty","f-price","f-dc","f-coo","f-lead","f-eta"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("f-status").value="Quoted";
   scrim.classList.add("on");document.getElementById("f-qty").focus();
 }
+document.getElementById("f-part").addEventListener("change",fillOfferedPn);
 const closeModal=()=>scrim.classList.remove("on");
 document.getElementById("addBtn").addEventListener("click",()=>{if(configured()&&parts.length)openModal(null);});
 document.getElementById("cancelBtn").addEventListener("click",closeModal);
@@ -604,6 +650,7 @@ document.getElementById("saveBtn").addEventListener("click",async()=>{
   const eta=document.getElementById("f-eta").value;
   const {error}=await db.from("offers").insert({
     pn:document.getElementById("f-part").value, qty,
+    offered_pn:document.getElementById("f-offpn").value||null,
     price:+document.getElementById("f-price").value||0,
     dc:document.getElementById("f-dc").value.trim(),
     coo:document.getElementById("f-coo").value.trim(),
@@ -686,6 +733,31 @@ document.getElementById("deletePartBtn").addEventListener("click",async()=>{
   closeEdit(); await refresh();
 });
 
+/* ---- add alternate modal ---- */
+const scrim5=document.getElementById("scrim5");
+let altForPart=null;
+function openAlt(pn){
+  const p=parts.find(x=>x.pn===pn); if(!p)return;
+  altForPart=pn;
+  document.getElementById("altSub").textContent="Alternate for "+p.pn;
+  document.getElementById("f5-pn").value="";
+  scrim5.classList.add("on");document.getElementById("f5-pn").focus();
+}
+const closeAlt=()=>{scrim5.classList.remove("on");altForPart=null;};
+document.getElementById("cancelAltBtn").addEventListener("click",closeAlt);
+scrim5.addEventListener("click",e=>{if(e.target===scrim5)closeAlt();});
+document.getElementById("saveAltBtn").addEventListener("click",async()=>{
+  if(!altForPart)return;
+  const alt=document.getElementById("f5-pn").value.trim();
+  if(!alt){alert("Enter a part number.");return;}
+  const p=parts.find(x=>x.pn===altForPart);
+  const cur=p.alternates||[];
+  if(alt===p.pn||cur.includes(alt)){alert("That part is already the main or an existing alternate.");return;}
+  const {error}=await db.from("parts").update({alternates:[...cur,alt]}).eq("pn",altForPart);
+  if(error){alert("Could not add alternate: "+error.message);return;}
+  closeAlt(); await refresh();
+});
+
 /* ---- order files (Supabase Storage) ---- */
 const scrim3=document.getElementById("scrim3");
 async function openFiles(id){
@@ -730,7 +802,7 @@ document.getElementById("fileList").addEventListener("click",async e=>{
 document.getElementById("closeFilesBtn").addEventListener("click",closeFiles);
 scrim3.addEventListener("click",e=>{if(e.target===scrim3)closeFiles();});
 
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();closeFiles();closeEdit();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePartModal();closeFiles();closeEdit();closeAlt();}});
 
 /* ---- export ---- */
 document.getElementById("exportBtn").addEventListener("click",()=>{
